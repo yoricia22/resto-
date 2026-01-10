@@ -26,7 +26,14 @@
         Login
       </ion-button>
 
-      <p v-if="error" style="color:red">{{ error }}</p>
+      <p class="ion-text-center ion-margin-top">
+        Belum punya akun? 
+        <router-link to="/register" style="color: var(--ion-color-primary)">
+          Daftar disini
+        </router-link>
+      </p>
+
+      <p v-if="error" style="color:red" class="ion-text-center">{{ error }}</p>
     </ion-content>
   </ion-page>
 </template>
@@ -53,6 +60,7 @@ const router = useRouter()
 
 const handleLogin = async () => {
   try {
+    error.value = ''
     const res = await login(email.value, password.value)
 
     localStorage.setItem('token', res.token)
@@ -61,7 +69,18 @@ const handleLogin = async () => {
     router.push('/home')
 
   } catch (err) {
-    error.value = 'Email atau password salah'
+    if (err.response?.data?.message) {
+      error.value = err.response.data.message
+    } else {
+      error.value = 'Email atau password salah'
+    }
   }
 }
 </script>
+
+<style scoped>
+a {
+  text-decoration: none;
+  font-weight: 500;
+}
+</style>

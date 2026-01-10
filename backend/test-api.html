@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API - Resto Backend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input, button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test API Backend Resto</h1>
+        
+        <div class="section">
+            <h2>📝 Register</h2>
+            <input type="text" id="regName" placeholder="Nama Lengkap" value="John Doe">
+            <input type="email" id="regEmail" placeholder="Email" value="john@test.com">
+            <input type="password" id="regPassword" placeholder="Password" value="123456">
+            <button onclick="testRegister()">Register</button>
+            <div id="regResult" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔐 Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email" value="john@test.com">
+            <input type="password" id="loginPassword" placeholder="Password" value="123456">
+            <button onclick="testLogin()">Login</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>👤 Get Profile</h2>
+            <p>Klik tombol ini setelah login untuk mendapatkan profile user</p>
+            <button onclick="testProfile()">Get Profile</button>
+            <div id="profileResult" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Database Contents</h2>
+            <button onclick="showDatabase()">Show All Users</button>
+            <div id="dbResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+
+        async function testRegister() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const resultDiv = document.getElementById('regResult');
+
+            try {
+                const response = await fetch('http://localhost:8000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ SUCCESS!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ ERROR!\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ NETWORK ERROR!\n\n' + error.message;
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+
+            try {
+                const response = await fetch('http://localhost:8000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    token = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ SUCCESS!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ ERROR!\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ NETWORK ERROR!\n\n' + error.message;
+            }
+        }
+
+        async function testProfile() {
+            const resultDiv = document.getElementById('profileResult');
+
+            if (!token) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please login first!';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ SUCCESS!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ ERROR!\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ NETWORK ERROR!\n\n' + error.message;
+            }
+        }
+
+        async function showDatabase() {
+            const resultDiv = document.getElementById('dbResult');
+            
+            try {
+                const response = await fetch('http://localhost:8000/database.json');
+                const data = await response.json();
+                
+                resultDiv.className = 'result';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ ERROR!\n\n' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
